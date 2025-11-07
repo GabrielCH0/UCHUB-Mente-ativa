@@ -12,7 +12,7 @@ interface Props {
     onSelectTeacher: () => void;
 }
 
-export function CreateAccountPopUp({ visible, onClose, onSelectStudent, onSelectTeacher }: Props) {
+export default function CreateAccountPopUp({ visible, onClose, onSelectStudent, onSelectTeacher }: Props) {
     return (
         <Modal
             visible={visible}

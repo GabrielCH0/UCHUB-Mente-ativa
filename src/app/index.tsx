@@ -1,9 +1,9 @@
-import { ROUTES } from "@/app/_routes";
-import { CreateAccountPopUp } from "@/app/popUps/professorOuAluno";
+import CreateAccountPopUp from "@/app/popUps/professorOuAluno";
 import { GradientButton } from "@/components/gradientButton";
 import { InputText } from "@/components/inputText";
 import { backgroundStyles, Gradient } from "@/styles/background";
 import { globalStyles } from "@/styles/global";
+import { ROUTES } from "@/utils/routes";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
@@ -19,6 +19,10 @@ export default function Index() {
     const contentPaddingBottom = Math.max(24, height * 0.05);
 
     const [isPopUpVisible, setIsPopUpVisible] = useState(false);
+
+    const [email, setEmail] = useState('');
+    const [senha, setSenha] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     function handleStudentSelection() {
         setIsPopUpVisible(false);
