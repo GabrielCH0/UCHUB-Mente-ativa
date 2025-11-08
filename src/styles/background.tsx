@@ -1,25 +1,21 @@
-// ...existing code...
-import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { StyleProp, ViewStyle } from "react-native";
 
-export const backgroundStyles = StyleSheet.create({
-    container: {
-        flex: 1,
-        width: "100%",
-        height: "100%",
-        padding: 14,
-        position: "relative",
-    },
-});
+type GradientProps = {
+  children?: React.ReactNode; // permite receber elementos dentro
+  style?: StyleProp<ViewStyle>; // permite aplicar estilos externos
+};
 
-export function Gradient() {
-    return (
-        <LinearGradient
-            colors={["#0C0B5A", "#5017A3"]}
-            style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}
-            pointerEvents="none"
-        />
-    );
+export function Gradient({ children, style }: GradientProps) {
+  return (
+    <LinearGradient
+      colors={["#1e3c72", "#2a5298"]} // exemplo de gradiente
+      style={[{ flex: 1 }, style]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      {children}
+    </LinearGradient>
+  );
 }
-// ...existing code...

@@ -3,4 +3,5 @@ export const ROUTES = {
     CADASTRO_PROFESSOR: '/cadastroProfessor',
     MATERIAS_ALUNO: '/materiasAluno',
     MATERIAS_PROFESSOR: '/materiasProf',
+    CRIAR_QUESTOES: '/criarQuestoes'
 } as const;
