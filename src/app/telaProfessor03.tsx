@@ -31,7 +31,7 @@ export default function telaProfessor03({ navigation, route }: any) {
       </View>
 
       {/* Título */}
-      <Text style={styles.titulo}>{ano}</Text>
+      <Text style={styles.titulo}>{materia}</Text>
 
       {/* Lista de conteúdos */}
       <ScrollView 

@@ -10,7 +10,7 @@ const { width, height } = Dimensions.get("window");
 
 export default function telaProfessor02({ navigation, route }: any) {
   
-  const materia = route?.params?.materia || "Matéria";
+  const materia = route?.params?.materia || "Ano";
 
   const anos = ["6º ano", "7º ano", "8º ano", "9º ano", "1º ano EM"];
 
