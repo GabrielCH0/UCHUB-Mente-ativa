@@ -1,5 +1,5 @@
 import IconBack from "@/components/icons/iconBack";
-import { MateriaButton } from "@/components/materiaButton2/materiaButton";
+import { MateriaButton } from "@/components/materiaButton2";
 import { Gradient } from "@/utils/styles/background";
 import { router } from "expo-router";
 import React from "react";
