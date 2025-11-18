@@ -14,6 +14,9 @@ export default function CriarQuestoes() {
     const [alternativas, setAlternativas] = useState<string[]>(["", "", "", "", ""]);
     const [explicacao, setExplicacao] = useState("");
 
+    // Guarda qual índice é a alternativa correta (0–4). null = nenhuma ainda.
+    const [indiceCorreta, setIndiceCorreta] = useState<number | null>(null)
+
     const handleChangeAlt = (index: number, value: string) => {
         const next = [...alternativas];
         next[index] = value;
@@ -27,18 +30,18 @@ export default function CriarQuestoes() {
             .filter((alt) => alt !== "");
 
         if (!enunciado.trim() || alternativasLimpa.length < 2) {
-            console.warn("Preencha o enunciado e pelo menos duas alternativas.");
+            console.warn("Preencha o enunciado e pelo menos duas alternativas e marque a correta.");
             return;
         }
 
         const novaPergunta = {
             enunciado,
             alternativas: alternativasLimpa,
-            indiceCorreta: 0,     // por enquanto, assume que a primeira é a correta
+            indiceCorreta,
             explicacao,
-            turma: 9,             // depois você pode puxar isso da conta do professor
-            autorId: 1,
-            dificuldade: "facil",
+            // turma: 9,             // depois você pode puxar isso da conta do professor
+            // autorId: 1,
+            // dificuldade: "facil",
         };
 
         try {
@@ -86,7 +89,7 @@ export default function CriarQuestoes() {
                 </View>
 
                 <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-                    <Text style={styles.screenTitle}>Questão 5</Text>
+                    <Text style={styles.screenTitle}>Criar Questões</Text>
 
                     {/* Card do enunciado*/}
                     <View style={styles.enunciadoOuter}>
@@ -103,6 +106,8 @@ export default function CriarQuestoes() {
                             label={`Alternativa ${letter}`}
                             value={alternativas[idx]}
                             onChangeText={(v) => handleChangeAlt(idx, v)}
+                            isCorrect={indiceCorreta === idx}
+                            onPressMarkCorrect={() => setIndiceCorreta(idx)}
                         />
                     ))}
                     {/* Card de explicação */}
