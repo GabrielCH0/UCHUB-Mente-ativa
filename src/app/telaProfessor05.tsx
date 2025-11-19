@@ -286,10 +286,7 @@ export default function TelaProfessor05() {
         {/* HEADER */}
         <View style={styles.header}>
           {/* BOTÃO VOLTAR */}
-          <TouchableOpacity
-            style={styles.roundIcon}
-            disabled={saving}
-          >
+          <TouchableOpacity style={styles.roundIcon} disabled={saving}>
             <Ionicons name="chevron-back" size={22} color="#fff" />
           </TouchableOpacity>
 
@@ -304,7 +301,10 @@ export default function TelaProfessor05() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.saveChip, !dirty || saving ? { opacity: 0.5 } : null]}
+              style={[
+                styles.saveChip,
+                !dirty || saving ? { opacity: 0.5 } : null,
+              ]}
               disabled={!dirty || saving}
               onPress={handleSalvar}
             >
@@ -316,18 +316,23 @@ export default function TelaProfessor05() {
             </TouchableOpacity>
           </View>
         </View>
+
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.screenTitle}>Editar Questão</Text>
 
-          {/* BUSCA */}
-          <View style={styles.enunciadoOuter}>
+          {/* BUSCA - bloco mais baixo, sem cortar o botão */}
+          <View style={styles.searchOuter}>
             <CardEnunciado
               title="Buscar questão (ID ou início do enunciado)"
               value={searchText}
               onChangeText={setSearchText}
+              placeholder="Digite o ID ou o início do enunciado"
+              // card mais compacto
+              containerStyle={{ paddingVertical: 4, paddingHorizontal: 8 }}
+              contentMinHeight={32}
             />
 
             <TouchableOpacity
@@ -363,7 +368,7 @@ export default function TelaProfessor05() {
             </View>
           )}
 
-          {/* ENUNCIADO */}
+          {/* ENUNCIADO DA QUESTÃO */}
           <View style={styles.enunciadoOuter}>
             <CardEnunciado
               title={
@@ -397,6 +402,7 @@ export default function TelaProfessor05() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -405,6 +411,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     alignItems: "center",
   },
+
   roundIcon: {
     width: 36,
     height: 36,
@@ -413,20 +420,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
   saveChip: {
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 16,
     backgroundColor: "rgba(255,255,255,0.25)",
   },
+
   saveChipText: {
     color: "#fff",
     fontWeight: "700",
   },
+
   content: {
     paddingHorizontal: 20,
     paddingBottom: 28,
   },
+
   screenTitle: {
     textAlign: "center",
     color: "#FFFFFF",
@@ -435,12 +446,25 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 16,
   },
+
+  // usado para o ENUNCIADO da questão
   enunciadoOuter: {
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 12,
     marginBottom: 14,
   },
+
+  // usado só para o bloco de BUSCA
+  searchOuter: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6, // menos alto
+    marginBottom: 14,
+    // sem maxHeight / overflow
+  },
+
   searchButton: {
     marginTop: 8,
     alignSelf: "flex-end",
@@ -449,25 +473,30 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: "rgba(0,0,0,0.05)",
   },
+
   searchButtonText: {
     color: "#333",
     fontWeight: "600",
     fontSize: 13,
   },
+
   resultsBox: {
     marginBottom: 14,
     backgroundColor: "rgba(255,255,255,0.9)",
     borderRadius: 12,
     paddingVertical: 4,
   },
+
   resultItem: {
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
+
   resultTitle: {
     color: "#222",
     fontSize: 13,
   },
+
   deleteChip: {
     paddingHorizontal: 10,
     paddingVertical: 6,
