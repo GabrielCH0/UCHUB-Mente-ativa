@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { backgroundStyles, Gradient } from "@/styles/background";
 import CardEnunciado from "@/components/cards/cardEnunciado";
 import CardAlternativas from "@/components/cards/cardAlternativas";
+import CardEnunciadoSearch from "@/components/cards/cardEnunciadoSearch";
 
 // URL do seu dataServer
 const API_BASE_URL =
@@ -323,31 +324,35 @@ export default function TelaProfessor05() {
         >
           <Text style={styles.screenTitle}>Editar Questão</Text>
 
-          {/* BUSCA - bloco mais baixo, sem cortar o botão */}
+          {/* BUSCA*/}
+          {/* LABEL NA PARTE ROXA, FORA DO CARD */}
+          <Text style={styles.searchLabel}>
+            Buscar questão (ID ou início do enunciado)
+          </Text>
+
+          {/* BLOCO BRANCO COM INPUT + BOTÃO */}
+          {/* BLOCO BRANCO COM INPUT + BOTÃO */}
           <View style={styles.searchOuter}>
-            <CardEnunciado
-              title="Buscar questão (ID ou início do enunciado)"
-              value={searchText}
-              onChangeText={setSearchText}
-              placeholder="Digite o ID ou o início do enunciado"
-              // card mais compacto
-              containerStyle={{ paddingVertical: 4, paddingHorizontal: 8 }}
-              contentMinHeight={32}
-            />
+            <View style={styles.searchRow}>
+              <CardEnunciadoSearch
+                value={searchText}
+                onChangeText={setSearchText}
+                placeholder="Digite aqui..."
+              />
 
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={handleSearch}
-              disabled={searching}
-            >
-              {searching ? (
-                <ActivityIndicator size="small" color="#333" />
-              ) : (
-                <Text style={styles.searchButtonText}>Buscar</Text>
-              )}
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.searchButton}
+                onPress={handleSearch}
+                disabled={searching}
+              >
+                {searching ? (
+                  <ActivityIndicator size="small" color="#333" />
+                ) : (
+                  <Text style={styles.searchButtonText}>Buscar</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-
           {/* RESULTADOS DA BUSCA */}
           {results.length > 0 && (
             <View style={styles.resultsBox}>
@@ -368,16 +373,21 @@ export default function TelaProfessor05() {
             </View>
           )}
 
-          {/* ENUNCIADO DA QUESTÃO */}
+          {/* LABEL DO ENUNCIADO (FORA DO CARD, EM BRANCO) */}
+          <Text style={styles.enunciadoLabel}>
+            {selectedQuestion
+              ? `Enunciado da questão #${selectedQuestion.id}`
+              : "Enunciado da questão"}
+          </Text>
+
+          {/* CARD BRANCO DO ENUNCIADO, MAIS BAIXO */}
           <View style={styles.enunciadoOuter}>
             <CardEnunciado
-              title={
-                selectedQuestion
-                  ? `Enunciado da questão #${selectedQuestion.id}`
-                  : "Enunciado da questão..."
-              }
               value={enunciado}
               onChangeText={setEnunciado}
+              placeholder="Enunciado da questão..."
+              contentMinHeight={60}              // 👈 altura menor (antes era 90)
+              containerStyle={styles.enunciadoCard} // 👈 menos padding
             />
           </View>
 
@@ -447,12 +457,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  // usado para o ENUNCIADO da questão
   enunciadoOuter: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 14,
+    marginBottom: 14,          // só espaçamento; o fundo branco vem do CardEnunciado
+  },
+  enunciadoLabel: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 4,
+    marginLeft: 4,
+  },
+
+  enunciadoCard: {
+    padding: 10,               // antes o CardEnunciado usava 16
+    borderRadius: 12,
   },
 
   // usado só para o bloco de BUSCA
@@ -460,18 +478,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 16,
     paddingHorizontal: 10,
-    paddingVertical: 6, // menos alto
+    paddingVertical: 6,   // se ainda ficar alto, pode descer pra 4
     marginBottom: 14,
-    // sem maxHeight / overflow
   },
 
   searchButton: {
-    marginTop: 8,
-    alignSelf: "flex-end",
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.05)",
+    borderRadius: 10,
+    backgroundColor: "rgba(0,0,0,0.08)",
   },
 
   searchButtonText: {
@@ -503,5 +518,18 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: "rgba(255,255,255,0.15)",
     marginRight: 10,
+  },
+  searchLabel: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 4,
+    marginLeft: 4,
+  },
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between", // joga um pra esquerda e outro pra direita
+    width: "100%",                   // 👈 faz o row ocupar toda a largura do card branco
   },
 });
