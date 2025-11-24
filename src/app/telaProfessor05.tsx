@@ -1,93 +1,239 @@
-// app/editar-questoes.tsx
-import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, ScrollView, SafeAreaView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import React, { useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  SafeAreaView,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { backgroundStyles, Gradient } from "@/styles/background";
 import CardEnunciado from "@/components/cards/cardEnunciado";
 import CardAlternativas from "@/components/cards/cardAlternativas";
-// import { useLocalSearchParams, useRouter } from "expo-router";
+import CardEnunciadoSearch from "@/components/cards/cardEnunciadoSearch";
 
+// URL do seu dataServer
+const API_BASE_URL =
+  "https://93e08048-d088-4dbc-bd60-18bab6374393-00-1lc06cy73r5o4.picard.replit.dev";
+
+// Tipagem da questão vinda do servidor
 type Question = {
-  id: string;
+  id: number;
   enunciado: string;
-  alternativas: [string, string, string, string, string];
+  alternativas: string[];
+  indiceCorreta?: number;
+  explicacao?: string;
+  turma?: number;
+  autorId?: number;
+  dificuldade?: string;
 };
 
-// ---------- MOCK INICIAL (se não houver nada salvo) ----------
-const MOCK: Question = {
-  id: "q-123",
-  enunciado: "Enunciado inicial...",
-  alternativas: ["Alternativa A", "Alternativa B", "Alternativa C", "Alternativa D", "Alternativa E"],
-};
+/* ---------------------- FUNÇÕES DE API ---------------------- */
 
-const storageKey = (id: string) => `qa:${id}`;
+// Buscar questão por ID
+async function getQuestionById(id: number): Promise<Question> {
+  const res = await fetch(`${API_BASE_URL}/perguntas/${id}`);
+  if (!res.ok) {
+    throw new Error(`Questão ${id} não encontrada.`);
+  }
+  return res.json();
+}
 
-// util local: carregar/salvar no AsyncStorage
-async function loadQuestion(id: string): Promise<Question> {
-  const json = await AsyncStorage.getItem(storageKey(id));
-  if (json) return JSON.parse(json);
-  await AsyncStorage.setItem(storageKey(id), JSON.stringify(MOCK));
-  return MOCK;
+// Buscar questões por texto do enunciado
+async function searchQuestionsByText(term: string): Promise<Question[]> {
+  const res = await fetch(
+    `${API_BASE_URL}/perguntas?enunciado_like=${encodeURIComponent(term)}`
+  );
+  if (!res.ok) {
+    throw new Error("Erro ao buscar questões.");
+  }
+  return res.json();
 }
-async function saveQuestion(q: Question): Promise<void> {
-  await AsyncStorage.setItem(storageKey(q.id), JSON.stringify(q));
+
+// Atualizar questão
+async function updateQuestion(q: Question): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/perguntas/${q.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(q),
+  });
+  if (!res.ok) {
+    throw new Error("Erro ao atualizar questão.");
+  }
 }
+
+//Deletar questão
+async function deleteQuestion(id: number): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/perguntas/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error("Erro ao apagar questão.");
+  }
+}
+
+/* ---------------------- COMPONENTE DA TELA ---------------------- */
 
 export default function TelaProfessor05() {
-  // const { questionId } = useLocalSearchParams<{ questionId: string }>();
-  // const router = useRouter();
-  const questionId = "q-123"; // substitua pelo param de rota quando tiver
+  // BUSCA
+  const [searchText, setSearchText] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [results, setResults] = useState<Question[]>([]);
 
+  // Questão selecionada
+  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(
+    null
+  );
+
+  // CAMPOS DE EDIÇÃO
   const [enunciado, setEnunciado] = useState("");
-  const [alternativas, setAlternativas] = useState<string[]>(["", "", "", "", ""]);
-  const [loading, setLoading] = useState(true);
+  const [alternativas, setAlternativas] = useState<string[]>([
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
+
+  // NOVO: índice da alternativa correta
+  const [indiceCorreta, setIndiceCorreta] = useState<number | null>(null);
+
+  // Salvamento
   const [saving, setSaving] = useState(false);
-  const [initial, setInitial] = useState<{ enunciado: string; alternativas: string[] } | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setLoading(true);
-      try {
-        const q = await loadQuestion(questionId);
-        if (!alive) return;
-        setEnunciado(q.enunciado ?? "");
-        setAlternativas([...q.alternativas]);
-        setInitial({ enunciado: q.enunciado ?? "", alternativas: [...q.alternativas] });
-      } finally {
-        setLoading(false);
-      }
-    })();
-    return () => { alive = false; };
-  }, [questionId]);
+  // Estado inicial (para detectar dirty)
+  const [initial, setInitial] = useState<{
+    enunciado: string;
+    alternativas: string[];
+    indiceCorreta: number | null;
+  } | null>(null);
 
+  // Detecta se houve qualquer alteração
   const dirty = useMemo(() => {
     if (!initial) return false;
-    if (initial.enunciado !== enunciado) return true;
-    for (let i = 0; i < 5; i++) if (initial.alternativas[i] !== alternativas[i]) return true;
-    return false;
-  }, [initial, enunciado, alternativas]);
 
+    if (initial.enunciado !== enunciado) return true;
+
+    for (let i = 0; i < 5; i++) {
+      if (initial.alternativas[i] !== alternativas[i]) return true;
+    }
+
+    if (initial.indiceCorreta !== indiceCorreta) return true;
+
+    return false;
+  }, [initial, enunciado, alternativas, indiceCorreta]);
+
+  // Atualizar alternativa específica
   const updateAlt = (i: number, v: string) => {
-    setAlternativas(prev => {
+    setAlternativas((prev) => {
       const next = [...prev];
       next[i] = v;
       return next;
     });
   };
 
+  /* ---------------------- BUSCA ---------------------- */
+
+  const handleSearch = async () => {
+    const term = searchText.trim();
+    if (!term) return;
+
+    setSearching(true);
+    try {
+      if (/^\d+$/.test(term)) {
+        const q = await getQuestionById(Number(term));
+        setResults(q ? [q] : []);
+      } else {
+        const list = await searchQuestionsByText(term);
+        setResults(list);
+      }
+    } catch (e: any) {
+      Alert.alert("Erro", e?.message ?? "Falha ao buscar.");
+      setResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  /* ---------------------- CARREGAR QUESTÃO ---------------------- */
+
+  const handleSelectQuestion = (q: Question) => {
+    setSelectedQuestion(q);
+
+    const enun = q.enunciado ?? "";
+
+    // garante 5 alternativas
+    const alt = [...(q.alternativas ?? [])];
+    while (alt.length < 5) alt.push("");
+    if (alt.length > 5) alt.splice(5);
+
+    // se não existir, usa 0 como padrão
+    const idxCorreta =
+      typeof q.indiceCorreta === "number" ? q.indiceCorreta : 0;
+
+    setEnunciado(enun);
+    setAlternativas(alt);
+    setIndiceCorreta(idxCorreta);
+
+    setInitial({
+      enunciado: enun,
+      alternativas: [...alt],
+      indiceCorreta: idxCorreta,
+    });
+
+    setResults([]);
+  };
+
+  /* ---------------------- SALVAR ---------------------- */
+
   const handleSalvar = async () => {
+    if (!selectedQuestion) {
+      Alert.alert("Aviso", "Selecione uma questão primeiro.");
+      return;
+    }
+
+    const alternativasTrim = alternativas.map((a) => a.trim());
+
+    if (!enunciado.trim()) {
+      Alert.alert("Atenção", "Preencha o enunciado.");
+      return;
+    }
+    if (alternativasTrim.filter((a) => a !== "").length < 2) {
+      Alert.alert(
+        "Atenção",
+        "Preencha pelo menos duas alternativas."
+      );
+      return;
+    }
+    if (indiceCorreta == null) {
+      Alert.alert("Atenção", "Selecione a alternativa correta.");
+      return;
+    }
+
     setSaving(true);
     try {
       const payload: Question = {
-        id: questionId,
-        enunciado,
-        alternativas: [alternativas[0], alternativas[1], alternativas[2], alternativas[3], alternativas[4]] as any,
+        ...selectedQuestion,
+        enunciado: enunciado.trim(),
+        alternativas: alternativasTrim,
+        indiceCorreta: indiceCorreta,
       };
-      await saveQuestion(payload);
-      setInitial({ enunciado, alternativas: [...alternativas] });
-      Alert.alert("Sucesso", "Questão atualizada localmente.");
+
+      await updateQuestion(payload);
+
+      setInitial({
+        enunciado: payload.enunciado,
+        alternativas: [...alternativasTrim],
+        indiceCorreta: payload.indiceCorreta ?? 0,
+      });
+
+      setSelectedQuestion(payload);
+
+      Alert.alert("Sucesso", "Questão atualizada!");
     } catch (e: any) {
       Alert.alert("Erro", e?.message ?? "Falha ao salvar.");
     } finally {
@@ -95,14 +241,44 @@ export default function TelaProfessor05() {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={[backgroundStyles.container, { alignItems: "center", justifyContent: "center" }]}>
-        <Gradient />
-        <ActivityIndicator size="large" color="#fff" />
-      </View>
+  /* -----------------------DELETAR---------------------- */
+
+  const handleDelete = () => {
+    if (!selectedQuestion) {
+      Alert.alert("Aviso", "Nenhuma questão selecionada.");
+      return;
+    }
+
+    Alert.alert(
+      "Excluir questão",
+      "Tem certeza que deseja apagar esta questão permanentemente?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Apagar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteQuestion(selectedQuestion.id);
+
+              // Limpa a tela toda
+              setSelectedQuestion(null);
+              setEnunciado("");
+              setAlternativas(["", "", "", "", ""]);
+              setIndiceCorreta(null);
+              setInitial(null);
+
+              Alert.alert("Sucesso", "Questão apagada com sucesso.");
+            } catch (e: any) {
+              Alert.alert("Erro", e?.message ?? "Falha ao apagar a questão.");
+            }
+          },
+        },
+      ]
     );
-  }
+  };
+
+  /* ---------------------- RENDER ---------------------- */
 
   return (
     <View style={backgroundStyles.container}>
@@ -110,73 +286,250 @@ export default function TelaProfessor05() {
       <SafeAreaView style={styles.container}>
         {/* HEADER */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.roundIcon}
-            onPress={() => {/* router?.back?.() */}}
-            disabled={saving}
-          >
+          {/* BOTÃO VOLTAR */}
+          <TouchableOpacity style={styles.roundIcon} disabled={saving}>
             <Ionicons name="chevron-back" size={22} color="#fff" />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.saveChip, !dirty || saving ? { opacity: 0.5 } : null]}
-            onPress={handleSalvar}
-            disabled={!dirty || saving}
-          >
-            <Text style={styles.saveChipText}>{saving ? "Salvando..." : "Salvar"}</Text>
-          </TouchableOpacity>
+          {/* BLOCO DA DIREITA (delete + salvar) */}
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <TouchableOpacity
+              style={styles.deleteChip}
+              disabled={!selectedQuestion || saving}
+              onPress={handleDelete}
+            >
+              <Ionicons name="trash-outline" size={20} color="#ff4444" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.saveChip,
+                !dirty || saving ? { opacity: 0.5 } : null,
+              ]}
+              disabled={!dirty || saving}
+              onPress={handleSalvar}
+            >
+              {saving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.saveChipText}>Salvar</Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Text style={styles.screenTitle}>Questão 5</Text>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.screenTitle}>Editar Questão</Text>
 
-          {/* Enunciado editável inline (seu componente) */}
+          {/* BUSCA*/}
+          {/* LABEL NA PARTE ROXA, FORA DO CARD */}
+          <Text style={styles.searchLabel}>
+            Buscar questão (ID ou início do enunciado)
+          </Text>
+
+          {/* BLOCO BRANCO COM INPUT + BOTÃO */}
+          {/* BLOCO BRANCO COM INPUT + BOTÃO */}
+          <View style={styles.searchOuter}>
+            <View style={styles.searchRow}>
+              <CardEnunciadoSearch
+                value={searchText}
+                onChangeText={setSearchText}
+                placeholder="Digite aqui..."
+              />
+
+              <TouchableOpacity
+                style={styles.searchButton}
+                onPress={handleSearch}
+                disabled={searching}
+              >
+                {searching ? (
+                  <ActivityIndicator size="small" color="#333" />
+                ) : (
+                  <Text style={styles.searchButtonText}>Buscar</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+          {/* RESULTADOS DA BUSCA */}
+          {results.length > 0 && (
+            <View style={styles.resultsBox}>
+              {results.map((q) => (
+                <TouchableOpacity
+                  key={q.id}
+                  style={styles.resultItem}
+                  onPress={() => handleSelectQuestion(q)}
+                >
+                  <Text style={styles.resultTitle}>
+                    #{q.id} –{" "}
+                    {q.enunciado.length > 60
+                      ? q.enunciado.slice(0, 60) + "..."
+                      : q.enunciado}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {/* LABEL DO ENUNCIADO (FORA DO CARD, EM BRANCO) */}
+          <Text style={styles.enunciadoLabel}>
+            {selectedQuestion
+              ? `Enunciado da questão #${selectedQuestion.id}`
+              : "Enunciado da questão"}
+          </Text>
+
+          {/* CARD BRANCO DO ENUNCIADO, MAIS BAIXO */}
           <View style={styles.enunciadoOuter}>
             <CardEnunciado
-              title="Enunciado da questão..."
               value={enunciado}
               onChangeText={setEnunciado}
+              placeholder="Enunciado da questão..."
+              contentMinHeight={60}              // 👈 altura menor (antes era 90)
+              containerStyle={styles.enunciadoCard} // 👈 menos padding
             />
           </View>
 
-          {/* A–E editáveis inline (seu componente) */}
+          {/* ALTERNATIVAS */}
           {["A", "B", "C", "D", "E"].map((letter, idx) => (
             <CardAlternativas
               key={letter}
               label={`Alternativa ${letter}`}
               value={alternativas[idx]}
               onChangeText={(v) => updateAlt(idx, v)}
+              isCorrect={indiceCorreta === idx}
+              onPressMarkCorrect={() => setIndiceCorreta(idx)}
             />
           ))}
-
-          {/* Se quiser o botão "Explicação" depois, só inserir aqui */}
         </ScrollView>
       </SafeAreaView>
     </View>
   );
 }
 
+/* ---------------------- ESTILOS ---------------------- */
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
+
   header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 18, paddingTop: 8, paddingBottom: 4,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    paddingTop: 8,
+    paddingBottom: 4,
+    alignItems: "center",
   },
+
   roundIcon: {
-    width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
   },
+
   saveChip: {
-    paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
     backgroundColor: "rgba(255,255,255,0.25)",
   },
-  saveChipText: { color: "#fff", fontWeight: "700" },
-  content: { paddingHorizontal: 20, paddingBottom: 28 },
-  screenTitle: {
-    textAlign: "center", color: "#FFFFFF", fontSize: 26, fontWeight: "800",
-    marginTop: 12, marginBottom: 16,
+
+  saveChipText: {
+    color: "#fff",
+    fontWeight: "700",
   },
+
+  content: {
+    paddingHorizontal: 20,
+    paddingBottom: 28,
+  },
+
+  screenTitle: {
+    textAlign: "center",
+    color: "#FFFFFF",
+    fontSize: 26,
+    fontWeight: "800",
+    marginTop: 12,
+    marginBottom: 16,
+  },
+
   enunciadoOuter: {
-    backgroundColor: "#fff", borderRadius: 16, padding: 12, marginBottom: 14,
+    marginBottom: 14,          // só espaçamento; o fundo branco vem do CardEnunciado
+  },
+  enunciadoLabel: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 4,
+    marginLeft: 4,
+  },
+
+  enunciadoCard: {
+    padding: 10,               // antes o CardEnunciado usava 16
+    borderRadius: 12,
+  },
+
+  // usado só para o bloco de BUSCA
+  searchOuter: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,   // se ainda ficar alto, pode descer pra 4
+    marginBottom: 14,
+  },
+
+  searchButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: "rgba(0,0,0,0.08)",
+  },
+
+  searchButtonText: {
+    color: "#333",
+    fontWeight: "600",
+    fontSize: 13,
+  },
+
+  resultsBox: {
+    marginBottom: 14,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRadius: 12,
+    paddingVertical: 4,
+  },
+
+  resultItem: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+
+  resultTitle: {
+    color: "#222",
+    fontSize: 13,
+  },
+
+  deleteChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    marginRight: 10,
+  },
+  searchLabel: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 4,
+    marginLeft: 4,
+  },
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between", // joga um pra esquerda e outro pra direita
+    width: "100%",                   // 👈 faz o row ocupar toda a largura do card branco
   },
 });

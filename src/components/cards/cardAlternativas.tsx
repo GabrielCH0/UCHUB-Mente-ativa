@@ -1,70 +1,89 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
-import { colors } from '../theme/colors';
-import { radius, space } from '../theme/spacing';
+import React from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-type AlternativeItemProps = {
-  label: string;                // "Alternativa A", etc.
-  value: string;                // texto da alternativa
-  onChangeText: (v: string) => void;
+type Props = {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+
+  // 👉 novos props
+  isCorrect?: boolean;
+  onPressMarkCorrect?: () => void;
 };
 
-export default function CardAlternativas({ label, value, onChangeText }: AlternativeItemProps) {
-  const [editing, setEditing] = useState(false);
-  const inputRef = useRef<TextInput>(null);
-
-  const enterEdit = () => {
-    setEditing(true);
-    // dar um pequeno delay ajuda o focus em Android
-    setTimeout(() => inputRef.current?.focus(), 10);
-  };
-
-  const exitEdit = () => setEditing(false);
-
+export default function CardAlternativas({
+  label,
+  value,
+  onChangeText,
+  isCorrect = false,
+  onPressMarkCorrect,
+}: Props) {
   return (
-    <View style={styles.wrapper}>
-      {/* "Pílula" que vira input quando está editando */}
-      {!editing ? (
-        <Pressable style={styles.pill} onPress={enterEdit}>
-          <Text style={styles.pillText}>
-            {value?.trim() ? value : label}
+    <View style={styles.container}>
+      <View style={styles.headerRow}>
+        <Text style={styles.label}>{label}</Text>
+
+        {/* 👉 botão de marcar como correta */}
+        <TouchableOpacity
+          style={styles.correctButton}
+          onPress={onPressMarkCorrect}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={isCorrect ? "checkmark-circle" : "checkmark-circle-outline"}
+            size={20}
+            color={isCorrect ? "#00FF99" : "#FFFFFF"}
+          />
+          <Text style={styles.correctText}>
+            {isCorrect ? "Correta" : "Marcar como correta"}
           </Text>
-        </Pressable>
-      ) : (
-        <TextInput
-          ref={inputRef}
-          style={[styles.pill, styles.inputAsPill]}
-          value={value}
-          onChangeText={onChangeText}
-          onBlur={exitEdit}
-          placeholder={`Texto da ${label.toLowerCase()}`}
-          placeholderTextColor="#c9c3e2"
-          returnKeyType="done"
-          onSubmitEditing={exitEdit}
-        />
-      )}
+        </TouchableOpacity>
+      </View>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Digite a alternativa..."
+        placeholderTextColor="rgba(255,255,255,0.6)"
+        value={value}
+        onChangeText={onChangeText}
+        multiline
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: { marginBottom: space.md },
-  pill: {
-    minHeight: 48,
-    borderRadius: radius.pill,
-    backgroundColor: colors.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
+  container: {
+    backgroundColor: "#5A22B5",
+    borderRadius: 16,
     paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
+    paddingVertical: 10,
+    marginBottom: 10,
   },
-  pillText: { color: colors.pillText, fontWeight: '700' },
-  inputAsPill: {
-    textAlign: 'center',
-    color: '#fff',
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  label: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  correctButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  correctText: {
+    color: "#fff",
+    fontSize: 11,
+  },
+  input: {
+    color: "#fff",
+    fontSize: 14,
+    minHeight: 40,
   },
 });

@@ -10,6 +10,8 @@ type CardProps = PropsWithChildren & {
     placeholder?: string;
     editable?: boolean;          // por padrão true
     autoFocusIfEmpty?: boolean;  // foca automaticamente se vier vazio
+    containerStyle?: any;
+    contentMinHeight?: number;
 };
 
 /** Card branco com sombra suave; opcionalmente renderiza um título.
@@ -24,6 +26,8 @@ export default function CardEnunciado({
     placeholder = 'Enunciado da questão...',
     editable = true,
     autoFocusIfEmpty = true,
+    containerStyle,
+    contentMinHeight = 90
 }: CardProps) {
     const [editing, setEditing] = useState<boolean>(autoFocusIfEmpty && !value);
     const inputRef = useRef<TextInput>(null);
@@ -37,22 +41,25 @@ export default function CardEnunciado({
     const exitEdit = () => setEditing(false);
 
     return (
-        <View style={[styles.card, style]}>
+        <View style={[styles.card, containerStyle, style]}>
             {title ? <Text style={styles.title}>{title}</Text> : null}
 
             {/* Quando não estiver editando, mostra o texto (ou placeholder “apagado”);
           ao tocar, vira TextInput no mesmo lugar */}
             {!editing ? (
-                <Pressable onPress={enterEdit} style={styles.displayArea}>
+                <Pressable
+                    onPress={enterEdit}
+                    style={[styles.displayArea, { minHeight: contentMinHeight }]} 
+                >
                     <Text style={[styles.displayText, !value && styles.placeholderText]}>
                         {value?.trim() ? value : placeholder}
                     </Text>
-                    {children /* segue suportando children, se você quiser inserir algo extra */}
+                    {children}
                 </Pressable>
             ) : (
                 <TextInput
                     ref={inputRef}
-                    style={styles.inputArea}
+                    style={[styles.inputArea, { minHeight: contentMinHeight }]}  
                     multiline
                     value={value}
                     onChangeText={onChangeText}
@@ -72,8 +79,8 @@ export default function CardEnunciado({
 const styles = StyleSheet.create({
     card: {
         backgroundColor: '#FFFFFF',
-        borderRadius: 12,      
-        padding: 16,           
+        borderRadius: 12,
+        padding: 16,
     },
     title: {
         color: '#3a2a67',
@@ -81,7 +88,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     displayArea: {
-        minHeight: 90,
+        // minHeight: 90,
         justifyContent: 'flex-start',
     },
     displayText: {
@@ -94,7 +101,7 @@ const styles = StyleSheet.create({
         opacity: 0.9,
     },
     inputArea: {
-        minHeight: 90,
+        // minHeight: 90,
         color: '#1f1b2e',
         fontSize: 14,
         lineHeight: 20,
