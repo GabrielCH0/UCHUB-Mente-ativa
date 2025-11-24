@@ -2,11 +2,12 @@ import { GradientButton } from "@/components/gradientButton";
 import { InputText } from "@/components/inputText";
 import { backgroundStyles, Gradient } from "@/styles/background";
 import { globalStyles } from "@/styles/global";
+import { API_KEY } from "@/utils/apiKey";
 import React, { useEffect, useState } from "react"; // Adicionado useEffect
 import { Alert, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { MultipleSelectList } from "react-native-dropdown-select-list";
 
-const API_BASE_URL = "https://93e08048-d088-4dbc-bd60-18bab6374393-00-1lc06cy73r5o4.picard.replit.dev";
+const API_BASE_URL = API_KEY;
 
 export default function CadastroProfessor() {
     const [nome, setNome] = useState("");

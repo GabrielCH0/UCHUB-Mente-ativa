@@ -1,23 +1,23 @@
+import CardAlternativas from "@/components/cards/cardAlternativas";
+import CardEnunciado from "@/components/cards/cardEnunciado";
+import CardEnunciadoSearch from "@/components/cards/cardEnunciadoSearch";
+import { backgroundStyles, Gradient } from "@/styles/background";
+import { API_KEY } from "@/utils/apiKey";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { backgroundStyles, Gradient } from "@/styles/background";
-import CardEnunciado from "@/components/cards/cardEnunciado";
-import CardAlternativas from "@/components/cards/cardAlternativas";
-import CardEnunciadoSearch from "@/components/cards/cardEnunciadoSearch";
 
 // URL do seu dataServer
-const API_BASE_URL =
-  "https://93e08048-d088-4dbc-bd60-18bab6374393-00-1lc06cy73r5o4.picard.replit.dev";
+const API_BASE_URL = API_KEY;
 
 // Tipagem da questão vinda do servidor
 type Question = {

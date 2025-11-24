@@ -1,12 +1,13 @@
 import CardEnunciado from "@/components/cards/cardEnunciado";
 import { backgroundStyles, Gradient } from "@/styles/background";
+import { API_KEY } from "@/utils/apiKey";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import CardAlternativas from "@/components/cards/cardAlternativas";
 
-const API_BASE_URL = "https://93e08048-d088-4dbc-bd60-18bab6374393-00-1lc06cy73r5o4.picard.replit.dev"
+const API_BASE_URL = API_KEY;
 
 
 export default function CriarQuestoes() {
