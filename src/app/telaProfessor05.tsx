@@ -100,13 +100,13 @@ export default function TelaProfessor05() {
 
   const [explicacao, setExplicacao] = useState("");
 
-  // índice da alternativa correta
+
   const [indiceCorreta, setIndiceCorreta] = useState<number | null>(null);
 
-  // Salvamento
+  
   const [saving, setSaving] = useState(false);
 
-  // Estado inicial (para detectar dirty)
+  // Estado inicial (para detectar lixo de memória)
   const [initial, setInitial] = useState<{
     enunciado: string;
     alternativas: string[];
@@ -179,7 +179,7 @@ export default function TelaProfessor05() {
     const idxCorreta =
       typeof q.indiceCorreta === "number" ? q.indiceCorreta : 0;
 
-    // 🔹 pega explicação vinda da API (ou string vazia)
+    //pega explicação vinda da API (ou string vazia)
     const exp = q.explicacao ?? "";
 
     setEnunciado(enun);
@@ -198,6 +198,8 @@ export default function TelaProfessor05() {
   };
 
   /* ---------------------- SALVAR ---------------------- */
+
+  /*Considerar o incremento de POP-UP aqui também */
 
   const handleSalvar = async () => {
     if (!selectedQuestion) {
@@ -227,7 +229,7 @@ export default function TelaProfessor05() {
         enunciado: enunciado.trim(),
         alternativas: alternativasTrim,
         indiceCorreta: indiceCorreta,
-        explicacao: explicacao.trim(), // 🔹 manda explicação para a API
+        explicacao: explicacao.trim(), // mandar a explicação para a API
       };
 
       await updateQuestion(payload);
@@ -236,7 +238,7 @@ export default function TelaProfessor05() {
         enunciado: payload.enunciado,
         alternativas: [...alternativasTrim],
         indiceCorreta: payload.indiceCorreta ?? 0,
-        explicacao: payload.explicacao ?? "", // 🔹 atualiza estado inicial
+        explicacao: payload.explicacao ?? "", // atualiza estado inicial
       });
 
       setSelectedQuestion(payload);
@@ -258,19 +260,18 @@ export default function TelaProfessor05() {
       return;
     }
 
-    // 🌐 Comportamento especial para WEB (Expo Web / navegador)
+    //  Comportamento especial para WEB (Expo Web / navegador). Colocar isso em formato de Pop-Up
     if (Platform.OS === "web") {
       const ok = window.confirm(
         "Tem certeza que deseja apagar esta questão permanentemente?"
       );
       if (ok) {
-        // se o usuário confirmar no navegador, faz o delete direto
         executeDelete();
       }
       return;
     }
 
-    // 📱 Mobile (Android / iOS) usa Alert nativo com botões
+    //Mobile (Android / iOS) usa Alert nativo com botões. Colocar pop-ups depois no lugar
     Alert.alert(
       "Excluir questão",
       "Tem certeza que deseja apagar esta questão permanentemente?",
@@ -279,7 +280,7 @@ export default function TelaProfessor05() {
         {
           text: "Apagar",
           style: "destructive",
-          onPress: executeDelete, // 👈 agora só chamamos a função
+          onPress: executeDelete, 
         },
       ]
     );
@@ -427,7 +428,7 @@ export default function TelaProfessor05() {
             />
           ))}
 
-          {/* 🔹 EXPLICAÇÃO – MESMO LAYOUT DO ENUNCIADO */}
+          {/*EXPLICAÇÃO */}
           <Text style={styles.enunciadoLabel}>
             {selectedQuestion
               ? `Explicação da questão #${selectedQuestion.id}`
@@ -439,8 +440,8 @@ export default function TelaProfessor05() {
               value={explicacao}
               onChangeText={setExplicacao}
               placeholder="Resolução da questão..."
-              contentMinHeight={80} // mesma “altura base” que o enunciado
-              containerStyle={styles.enunciadoCard} // mesma casca branca
+              contentMinHeight={80} 
+              containerStyle={styles.enunciadoCard} 
             />
           </View>
         </ScrollView>
@@ -496,7 +497,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: 12,
     marginBottom: 16,
-    lineHeight: 30, // 🔹 aumenta um pouco pra não “comer” o acento
+    lineHeight: 30,
   },
 
   enunciadoOuter: {

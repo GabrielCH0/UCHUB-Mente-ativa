@@ -18,7 +18,7 @@ export default function CriarQuestoes({ navigation, route }: any) {
     // Guarda qual índice é a alternativa correta (0–4). null = nenhuma ainda.
     const [indiceCorreta, setIndiceCorreta] = useState<number | null>(null);
 
-    // Pega a turma/matéria vindas da tela anterior (com fallback)
+    // Pega a turma/matéria vindas de alguma tela anterior (com fallback)
     const turmaSelecionada = route?.params?.turmaSelecionada ?? 9;
     const materiaSelecionada = route?.params?.materiaSelecionada ?? "Matematica";
 
