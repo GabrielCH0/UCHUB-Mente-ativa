@@ -14,6 +14,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Platform,
 } from "react-native";
 
 const API_BASE_URL = API_KEY;
@@ -97,7 +98,6 @@ export default function TelaProfessor05() {
     "",
   ]);
 
-  // 🔹 novo campo de explicação (ligado ao card branco lá embaixo)
   const [explicacao, setExplicacao] = useState("");
 
   // índice da alternativa correta
@@ -111,7 +111,7 @@ export default function TelaProfessor05() {
     enunciado: string;
     alternativas: string[];
     indiceCorreta: number | null;
-    explicacao: string; // 🔹 incluí explicação no estado inicial
+    explicacao: string;
   } | null>(null);
 
   // Detecta se houve qualquer alteração
@@ -126,7 +126,7 @@ export default function TelaProfessor05() {
 
     if (initial.indiceCorreta !== indiceCorreta) return true;
 
-    // 🔹 verifica se a explicação mudou
+    // verificar se a explicação foi atualizada
     if (initial.explicacao !== explicacao) return true;
 
     return false;
@@ -191,7 +191,7 @@ export default function TelaProfessor05() {
       enunciado: enun,
       alternativas: [...alt],
       indiceCorreta: idxCorreta,
-      explicacao: exp, 
+      explicacao: exp,
     });
 
     setResults([]);
@@ -250,13 +250,27 @@ export default function TelaProfessor05() {
   };
 
   /* ----------------------- DELETAR ---------------------- */
-
   const handleDelete = () => {
+    console.log("Cliquei na lixeira. selectedQuestion =", selectedQuestion);
+
     if (!selectedQuestion) {
       Alert.alert("Aviso", "Nenhuma questão selecionada.");
       return;
     }
 
+    // 🌐 Comportamento especial para WEB (Expo Web / navegador)
+    if (Platform.OS === "web") {
+      const ok = window.confirm(
+        "Tem certeza que deseja apagar esta questão permanentemente?"
+      );
+      if (ok) {
+        // se o usuário confirmar no navegador, faz o delete direto
+        executeDelete();
+      }
+      return;
+    }
+
+    // 📱 Mobile (Android / iOS) usa Alert nativo com botões
     Alert.alert(
       "Excluir questão",
       "Tem certeza que deseja apagar esta questão permanentemente?",
@@ -265,26 +279,30 @@ export default function TelaProfessor05() {
         {
           text: "Apagar",
           style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteQuestion(selectedQuestion.id);
-
-              // Limpa a tela toda
-              setSelectedQuestion(null);
-              setEnunciado("");
-              setAlternativas(["", "", "", "", ""]);
-              setIndiceCorreta(null);
-              setExplicacao(""); // 🔹 limpa explicação também
-              setInitial(null);
-
-              Alert.alert("Sucesso", "Questão apagada com sucesso.");
-            } catch (e: any) {
-              Alert.alert("Erro", e?.message ?? "Falha ao apagar a questão.");
-            }
-          },
+          onPress: executeDelete, // 👈 agora só chamamos a função
         },
       ]
     );
+  };
+
+  const executeDelete = async () => {
+    if (!selectedQuestion) return;
+
+    try {
+      await deleteQuestion(selectedQuestion.id);
+
+      // Limpa a tela toda
+      setSelectedQuestion(null);
+      setEnunciado("");
+      setAlternativas(["", "", "", "", ""]);
+      setIndiceCorreta(null);
+      setExplicacao("");
+      setInitial(null);
+
+      Alert.alert("Sucesso", "Questão apagada com sucesso.");
+    } catch (e: any) {
+      Alert.alert("Erro", e?.message ?? "Falha ao apagar a questão.");
+    }
   };
 
   /* ---------------------- RENDER ---------------------- */
@@ -331,7 +349,7 @@ export default function TelaProfessor05() {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.screenTitle}>Editar Questão</Text>
+          <Text style={styles.screenTitle}>Editar Questões</Text>
 
           {/* BUSCA */}
           <Text style={styles.searchLabel}>
