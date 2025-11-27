@@ -10,13 +10,17 @@ import CardAlternativas from "@/components/cards/cardAlternativas";
 const API_BASE_URL = API_KEY;
 
 
-export default function CriarQuestoes() {
+export default function CriarQuestoes({ navigation, route }: any) {
     const [enunciado, setEnunciado] = useState("");
     const [alternativas, setAlternativas] = useState<string[]>(["", "", "", "", ""]);
     const [explicacao, setExplicacao] = useState("");
 
     // Guarda qual índice é a alternativa correta (0–4). null = nenhuma ainda.
-    const [indiceCorreta, setIndiceCorreta] = useState<number | null>(null)
+    const [indiceCorreta, setIndiceCorreta] = useState<number | null>(null);
+
+    // Pega a turma/matéria vindas de alguma tela anterior (com fallback)
+    const turmaSelecionada = route?.params?.turmaSelecionada ?? 9;
+    const materiaSelecionada = route?.params?.materiaSelecionada ?? "Matematica";
 
     const handleChangeAlt = (index: number, value: string) => {
         const next = [...alternativas];
@@ -30,8 +34,8 @@ export default function CriarQuestoes() {
             .map((alt) => alt.trim())
             .filter((alt) => alt !== "");
 
-        if (!enunciado.trim() || alternativasLimpa.length < 2) {
-            console.warn("Preencha o enunciado e pelo menos duas alternativas e marque a correta.");
+        if (!enunciado.trim() || alternativasLimpa.length < 2 || indiceCorreta === null) {
+            console.warn("Preencha o enunciado, pelo menos duas alternativas e marque a correta.");
             return;
         }
 
@@ -40,9 +44,8 @@ export default function CriarQuestoes() {
             alternativas: alternativasLimpa,
             indiceCorreta,
             explicacao,
-            // turma: 9,             // depois você pode puxar isso da conta do professor
-            // autorId: 1,
-            // dificuldade: "facil",
+            turma: turmaSelecionada,
+            materia: materiaSelecionada,
         };
 
         try {
@@ -65,6 +68,7 @@ export default function CriarQuestoes() {
             setEnunciado("");
             setAlternativas(["", "", "", "", ""]);
             setExplicacao("");
+            setIndiceCorreta(null);
         } catch (error) {
             console.error("Erro ao salvar pergunta:", error);
         }
@@ -79,6 +83,7 @@ export default function CriarQuestoes() {
                     <TouchableOpacity
                         style={styles.roundIcon}
                         onPress={() => {
+                            navigation.goBack();
                         }}
                     >
                         <Ionicons name="chevron-back" size={22} color="#fff" />
@@ -92,14 +97,25 @@ export default function CriarQuestoes() {
                 <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
                     <Text style={styles.screenTitle}>Criar Questões</Text>
 
-                    {/* Card do enunciado*/}
+
+                    <Text style={{ color: "#fff", textAlign: "center", marginVertical: 8 }}>
+                        Turma: {turmaSelecionada} ••• Matéria: {materiaSelecionada}
+                    </Text>
+
+                    {/* TÍTULO */}
+                    <Text style={styles.enunciadoLabel}>Enunciado da questão</Text>
+
+                    {/* Card enunciado */}
                     <View style={styles.enunciadoOuter}>
                         <CardEnunciado
-                            title="Enunciado da questão..."
                             value={enunciado}
                             onChangeText={setEnunciado}
+                            placeholder="Enunciado da questão..."
+                            contentMinHeight={80}
+                            containerStyle={styles.enunciadoCard}
                         />
                     </View>
+
                     {/* Card das alternativas */}
                     {["A", "B", "C", "D", "E"].map((letter, idx) => (
                         <CardAlternativas
@@ -111,12 +127,17 @@ export default function CriarQuestoes() {
                             onPressMarkCorrect={() => setIndiceCorreta(idx)}
                         />
                     ))}
+
                     {/* Card de explicação */}
+                    <Text style={styles.enunciadoLabel}>Explicação da questão</Text>
+
                     <View style={styles.enunciadoOuter}>
                         <CardEnunciado
-                            title="Explicação"
                             value={explicacao}
                             onChangeText={setExplicacao}
+                            placeholder="Explique a resolução..."
+                            contentMinHeight={80}
+                            containerStyle={styles.enunciadoCard}
                         />
                     </View>
                 </ScrollView>
@@ -154,17 +175,16 @@ const styles = StyleSheet.create({
     },
     saveChipText: { color: "#fff", fontWeight: "700" },
 
-
     content: { paddingHorizontal: 20, paddingBottom: 28 },
+
     screenTitle: {
         textAlign: "center",
         color: "#FFFFFF",
         fontSize: 26,
         fontWeight: "800",
         marginTop: 12,
-        marginBottom: 16,
+        paddingVertical: 12
     },
-
 
     enunciadoOuter: {
         backgroundColor: "#fff",
@@ -176,5 +196,17 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
         borderRadius: 12,
         padding: 16,
+    },
+    enunciadoLabel: {
+        color: "#FFFFFF",
+        fontSize: 13,
+        fontWeight: "600",
+        marginBottom: 4,
+        marginLeft: 4,
+    },
+
+    enunciadoCard: {
+        padding: 10,
+        borderRadius: 12,
     },
 });

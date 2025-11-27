@@ -14,12 +14,11 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Platform,
 } from "react-native";
 
-// URL do seu dataServer
 const API_BASE_URL = API_KEY;
 
-// Tipagem da questão vinda do servidor
 type Question = {
   id: number;
   enunciado: string;
@@ -65,7 +64,7 @@ async function updateQuestion(q: Question): Promise<void> {
   }
 }
 
-//Deletar questão
+// Deletar questão
 async function deleteQuestion(id: number): Promise<void> {
   const res = await fetch(`${API_BASE_URL}/perguntas/${id}`, {
     method: "DELETE",
@@ -99,17 +98,20 @@ export default function TelaProfessor05() {
     "",
   ]);
 
-  // NOVO: índice da alternativa correta
+  const [explicacao, setExplicacao] = useState("");
+
+
   const [indiceCorreta, setIndiceCorreta] = useState<number | null>(null);
 
-  // Salvamento
+  
   const [saving, setSaving] = useState(false);
 
-  // Estado inicial (para detectar dirty)
+  // Estado inicial (para detectar lixo de memória)
   const [initial, setInitial] = useState<{
     enunciado: string;
     alternativas: string[];
     indiceCorreta: number | null;
+    explicacao: string;
   } | null>(null);
 
   // Detecta se houve qualquer alteração
@@ -124,8 +126,11 @@ export default function TelaProfessor05() {
 
     if (initial.indiceCorreta !== indiceCorreta) return true;
 
+    // verificar se a explicação foi atualizada
+    if (initial.explicacao !== explicacao) return true;
+
     return false;
-  }, [initial, enunciado, alternativas, indiceCorreta]);
+  }, [initial, enunciado, alternativas, indiceCorreta, explicacao]);
 
   // Atualizar alternativa específica
   const updateAlt = (i: number, v: string) => {
@@ -171,24 +176,30 @@ export default function TelaProfessor05() {
     while (alt.length < 5) alt.push("");
     if (alt.length > 5) alt.splice(5);
 
-    // se não existir, usa 0 como padrão
     const idxCorreta =
       typeof q.indiceCorreta === "number" ? q.indiceCorreta : 0;
+
+    //pega explicação vinda da API (ou string vazia)
+    const exp = q.explicacao ?? "";
 
     setEnunciado(enun);
     setAlternativas(alt);
     setIndiceCorreta(idxCorreta);
+    setExplicacao(exp);
 
     setInitial({
       enunciado: enun,
       alternativas: [...alt],
       indiceCorreta: idxCorreta,
+      explicacao: exp,
     });
 
     setResults([]);
   };
 
   /* ---------------------- SALVAR ---------------------- */
+
+  /*Considerar o incremento de POP-UP aqui também */
 
   const handleSalvar = async () => {
     if (!selectedQuestion) {
@@ -203,10 +214,7 @@ export default function TelaProfessor05() {
       return;
     }
     if (alternativasTrim.filter((a) => a !== "").length < 2) {
-      Alert.alert(
-        "Atenção",
-        "Preencha pelo menos duas alternativas."
-      );
+      Alert.alert("Atenção", "Preencha pelo menos duas alternativas.");
       return;
     }
     if (indiceCorreta == null) {
@@ -221,6 +229,7 @@ export default function TelaProfessor05() {
         enunciado: enunciado.trim(),
         alternativas: alternativasTrim,
         indiceCorreta: indiceCorreta,
+        explicacao: explicacao.trim(), // mandar a explicação para a API
       };
 
       await updateQuestion(payload);
@@ -229,6 +238,7 @@ export default function TelaProfessor05() {
         enunciado: payload.enunciado,
         alternativas: [...alternativasTrim],
         indiceCorreta: payload.indiceCorreta ?? 0,
+        explicacao: payload.explicacao ?? "", // atualiza estado inicial
       });
 
       setSelectedQuestion(payload);
@@ -241,14 +251,27 @@ export default function TelaProfessor05() {
     }
   };
 
-  /* -----------------------DELETAR---------------------- */
-
+  /* ----------------------- DELETAR ---------------------- */
   const handleDelete = () => {
+    console.log("Cliquei na lixeira. selectedQuestion =", selectedQuestion);
+
     if (!selectedQuestion) {
       Alert.alert("Aviso", "Nenhuma questão selecionada.");
       return;
     }
 
+    //  Comportamento especial para WEB (Expo Web / navegador). Colocar isso em formato de Pop-Up
+    if (Platform.OS === "web") {
+      const ok = window.confirm(
+        "Tem certeza que deseja apagar esta questão permanentemente?"
+      );
+      if (ok) {
+        executeDelete();
+      }
+      return;
+    }
+
+    //Mobile (Android / iOS) usa Alert nativo com botões. Colocar pop-ups depois no lugar
     Alert.alert(
       "Excluir questão",
       "Tem certeza que deseja apagar esta questão permanentemente?",
@@ -257,25 +280,30 @@ export default function TelaProfessor05() {
         {
           text: "Apagar",
           style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteQuestion(selectedQuestion.id);
-
-              // Limpa a tela toda
-              setSelectedQuestion(null);
-              setEnunciado("");
-              setAlternativas(["", "", "", "", ""]);
-              setIndiceCorreta(null);
-              setInitial(null);
-
-              Alert.alert("Sucesso", "Questão apagada com sucesso.");
-            } catch (e: any) {
-              Alert.alert("Erro", e?.message ?? "Falha ao apagar a questão.");
-            }
-          },
+          onPress: executeDelete, 
         },
       ]
     );
+  };
+
+  const executeDelete = async () => {
+    if (!selectedQuestion) return;
+
+    try {
+      await deleteQuestion(selectedQuestion.id);
+
+      // Limpa a tela toda
+      setSelectedQuestion(null);
+      setEnunciado("");
+      setAlternativas(["", "", "", "", ""]);
+      setIndiceCorreta(null);
+      setExplicacao("");
+      setInitial(null);
+
+      Alert.alert("Sucesso", "Questão apagada com sucesso.");
+    } catch (e: any) {
+      Alert.alert("Erro", e?.message ?? "Falha ao apagar a questão.");
+    }
   };
 
   /* ---------------------- RENDER ---------------------- */
@@ -322,16 +350,13 @@ export default function TelaProfessor05() {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.screenTitle}>Editar Questão</Text>
+          <Text style={styles.screenTitle}>Editar Questões</Text>
 
-          {/* BUSCA*/}
-          {/* LABEL NA PARTE ROXA, FORA DO CARD */}
+          {/* BUSCA */}
           <Text style={styles.searchLabel}>
             Buscar questão (ID ou início do enunciado)
           </Text>
 
-          {/* BLOCO BRANCO COM INPUT + BOTÃO */}
-          {/* BLOCO BRANCO COM INPUT + BOTÃO */}
           <View style={styles.searchOuter}>
             <View style={styles.searchRow}>
               <CardEnunciadoSearch
@@ -353,6 +378,7 @@ export default function TelaProfessor05() {
               </TouchableOpacity>
             </View>
           </View>
+
           {/* RESULTADOS DA BUSCA */}
           {results.length > 0 && (
             <View style={styles.resultsBox}>
@@ -373,21 +399,20 @@ export default function TelaProfessor05() {
             </View>
           )}
 
-          {/* LABEL DO ENUNCIADO (FORA DO CARD, EM BRANCO) */}
+          {/* ENUNCIADO */}
           <Text style={styles.enunciadoLabel}>
             {selectedQuestion
               ? `Enunciado da questão #${selectedQuestion.id}`
               : "Enunciado da questão"}
           </Text>
 
-          {/* CARD BRANCO DO ENUNCIADO, MAIS BAIXO */}
           <View style={styles.enunciadoOuter}>
             <CardEnunciado
               value={enunciado}
               onChangeText={setEnunciado}
               placeholder="Enunciado da questão..."
-              contentMinHeight={60}              // 👈 altura menor (antes era 90)
-              containerStyle={styles.enunciadoCard} // 👈 menos padding
+              contentMinHeight={80} // 🔹 altura mínima (pode ajustar)
+              containerStyle={styles.enunciadoCard}
             />
           </View>
 
@@ -402,6 +427,23 @@ export default function TelaProfessor05() {
               onPressMarkCorrect={() => setIndiceCorreta(idx)}
             />
           ))}
+
+          {/*EXPLICAÇÃO */}
+          <Text style={styles.enunciadoLabel}>
+            {selectedQuestion
+              ? `Explicação da questão #${selectedQuestion.id}`
+              : "Explicação da questão"}
+          </Text>
+
+          <View style={styles.enunciadoOuter}>
+            <CardEnunciado
+              value={explicacao}
+              onChangeText={setExplicacao}
+              placeholder="Resolução da questão..."
+              contentMinHeight={80} 
+              containerStyle={styles.enunciadoCard} 
+            />
+          </View>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -455,10 +497,11 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: 12,
     marginBottom: 16,
+    lineHeight: 30,
   },
 
   enunciadoOuter: {
-    marginBottom: 14,          // só espaçamento; o fundo branco vem do CardEnunciado
+    marginBottom: 14,
   },
   enunciadoLabel: {
     color: "#FFFFFF",
@@ -469,7 +512,7 @@ const styles = StyleSheet.create({
   },
 
   enunciadoCard: {
-    padding: 10,               // antes o CardEnunciado usava 16
+    padding: 10,
     borderRadius: 12,
   },
 
@@ -478,7 +521,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 16,
     paddingHorizontal: 10,
-    paddingVertical: 6,   // se ainda ficar alto, pode descer pra 4
+    paddingVertical: 6,
     marginBottom: 14,
   },
 
@@ -519,6 +562,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.15)",
     marginRight: 10,
   },
+
   searchLabel: {
     color: "#FFFFFF",
     fontSize: 13,
@@ -526,10 +570,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     marginLeft: 4,
   },
+
   searchRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between", // joga um pra esquerda e outro pra direita
-    width: "100%",                   // 👈 faz o row ocupar toda a largura do card branco
+    justifyContent: "space-between",
+    width: "100%",
   },
 });
