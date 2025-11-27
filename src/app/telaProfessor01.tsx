@@ -1,12 +1,19 @@
-import GradientButton from "@/components/gradientButton";
-import { MateriaButton } from "@/components/materiaButton";
+import { Ionicons } from "@expo/vector-icons";
+import CardAlternativas from "@/components/cards/cardAlternativas";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-const { width, height } = Dimensions.get("window");
+ const { width, height } = Dimensions.get("window");
 
-export default function TelaProfessor01({ navigation }: any) {
+ export default function TelaProfessor01({ navigation }: any) {
   const materias = [
     "Filosofia",
     "Matemática",
@@ -15,44 +22,56 @@ export default function TelaProfessor01({ navigation }: any) {
     "Português",
     "Artes",
   ];
-
   return (
-    <LinearGradient
-      colors={["#111b84", "#3c0e71"]}
-      style={styles.container}
-    >
-
-      {/* Botão sair no canto superior esquerdo */}
+    <LinearGradient colors={["#111b84", "#3c0e71"]} style={styles.container}>
+      {/* Ícones topo */}
       <View style={styles.header}>
-        <GradientButton
-          title="Sair"
-          width={90}
-          height={36}
-          fontSize={13}
-          gradientColor={["#6A3EEA", "#A270FF"]}
+        <TouchableOpacity
           onPress={() => navigation.goBack()}
-        />
+          style={styles.iconCircle}
+        >
+          <Ionicons name="chevron-back" size={20} color="#fff" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("telaProfessor01")}
+          style={styles.iconCircle}
+        >
+          <Ionicons name="home" size={20} color="#fff" />
+        </TouchableOpacity>
       </View>
 
-      <Text style={styles.titulo}>Matérias</Text>
+      {/* Título */}
+      <Text style={styles.titulo}>Selecione a Disciplina</Text>
 
-      {/* Lista de matérias */}
-      <ScrollView 
+      {/* Lista de conteúdos */}
+      <ScrollView
         style={styles.lista}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listaContent}
       >
-        {materias.map((materia, index) => (
-          <MateriaButton
+        {materias.map((materia, index) => (   // ⬅️ AGORA USA O VETOR CERTO
+          <TouchableOpacity
             key={index}
-            nome={materia}
+            style={{ width: "100%" }}
             onPress={() =>
-              navigation.navigate("telaProfessor02", { materia })
+              navigation.navigate("telaProfessor02", {
+                materia
+              })
             }
-          />
+          >
+            <View style={styles.wrapperAlternativa}>
+              <CardAlternativas
+                label={`${materia}`}
+                showInput={false}
+                showMarkCorrect={false}
+                containerStyle={styles.cardLista}
+                labelStyle={styles.cardTexto}
+              />
+            </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
-
     </LinearGradient>
   );
 }
@@ -64,13 +83,12 @@ const styles = StyleSheet.create({
     paddingTop: height * 0.04,
     paddingHorizontal: width * 0.08,
   },
-
   header: {
     width: "100%",
-    alignItems: "flex-start",
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: height * 0.02,
   },
-
   titulo: {
     color: "#fff",
     fontWeight: "700",
@@ -78,14 +96,39 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: height * 0.03,
   },
-
   lista: {
     width: "100%",
     flex: 1,
   },
-
   listaContent: {
-    flexGrow: 1,
+    paddingBottom: 20,
+  },
+  wrapperAlternativa: {
+    marginVertical: 8,
+  },
+  cardLista: {
+    paddingVertical: 20,
+    justifyContent: "center",
+    alignContent: "center",
+    alignItems: "center",
+  },
+  cardTexto: {
+    fontSize: 21,
+    fontWeight: "700",
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 40,
+    backgroundColor: "rgba(255,255,255,0.20)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  nextButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 45,
+    backgroundColor: "rgba(255,255,255,0.20)",
     justifyContent: "center",
     alignItems: "center",
   },

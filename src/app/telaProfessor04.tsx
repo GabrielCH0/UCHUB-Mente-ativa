@@ -23,8 +23,13 @@ export default function telaProfessor04({ navigation, route }: any) {
     "Dois terços de 90 é?",
     "Simplifique 12/18",
     "Dois terços de 90 é?",
+    "Simplifique 12/18",
     "Dois terços de 90 é?",
+    "Simplifique 12/18",
     "Dois terços de 90 é?",
+    "Simplifique 12/18",
+    "Dois terços de 90 é?",
+    "Simplifique 12/18",
   ];
 
   return (
@@ -48,7 +53,7 @@ export default function telaProfessor04({ navigation, route }: any) {
       </View>
 
       {/* Título */}
-      <Text style={styles.titulo}>{conteudo}</Text>
+      <Text style={styles.titulo}>Atividades</Text>
 
       {/* Lista de questões */}
       <ScrollView
@@ -81,57 +86,24 @@ export default function telaProfessor04({ navigation, route }: any) {
           </TouchableOpacity>
         ))}
       </ScrollView>
-
-      {/* Botão próximo */}
-      <View style={styles.nextArea}>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("telaProfessor05", {
-              materia,
-              ano,
-              conteudo,
-              questao: 1,
-            })
-          }
-          style={styles.nextButton}       // círculo já existia aqui
-        >
-          <Ionicons name="chevron-forward" size={22} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Botões Criar e Editar */}
       <View style={styles.footer}>
-        <GradientButton
-          title="Criar Atv"
-          width={"48%"}
-          height={50}
-          fontSize={14}
-          gradientColor={["#0656E8", "#00A8FF"]}
-          onPress={() =>
-            navigation.navigate("telaProfessor05", {
-              materia,
-              ano,
-              conteudo,
-              novaQuestao: true,
-            })
-          }
-        />
-
-        <GradientButton
-          title="Editar"
-          width={"48%"}
-          height={50}
-          fontSize={14}
-          gradientColor={["#0656E8", "#00A8FF"]}
-          onPress={() =>
-            navigation.navigate("telaProfessor05", {
-              materia,
-              ano,
-              conteudo,
-              editar: true,
-            })
-          }
-        />
+        <View style={{ width: "100%" }}>
+          <GradientButton
+            title="Criar"
+            width={"100%"}    // ⬅ botão agora ocupa toda a largura
+            height={60}       // ⬅ ajuste para parecido com os cards
+            fontSize={18}
+            gradientColor={["#0656E8", "#00A8FF"]}
+            onPress={() =>
+              navigation.navigate("telaProfessor05", {
+                materia,
+                ano,
+                conteudo,
+                editar: true,
+              })
+            }
+          />
+        </View>
       </View>
     </LinearGradient>
   );
@@ -168,14 +140,11 @@ const styles = StyleSheet.create({
     marginTop: height * 0.02,
     marginBottom: height * 0.02,
   },
+
   footer: {
     width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     marginTop: height * 0.02,
     marginBottom: height * 0.02,
-    gap: width * 0.03,
   },
 
   wrapperAlternativa: {
