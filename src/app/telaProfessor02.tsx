@@ -1,10 +1,15 @@
-import IconBack from "@/components/icons/iconBack";
-import IconHome from "@/components/icons/iconHome";
-import IconNext from "@/components/icons/iconNext";
-import { MateriaButton } from "@/components/materiaButton";
+import { Ionicons } from "@expo/vector-icons";
+import CardAlternativas from "@/components/cards/cardAlternativas";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
@@ -16,52 +21,55 @@ export default function telaProfessor02({ navigation, route }: any) {
 
   return (
     <LinearGradient colors={["#111b84", "#3c0e71"]} style={styles.container}>
-
       {/* Ícones topo */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <IconBack />
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.iconCircle}
+        >
+          <Ionicons name="chevron-back" size={20} color="#fff" />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate("telaProfessor01")}>
-          <IconHome />
+        <TouchableOpacity
+          onPress={() => navigation.navigate("telaProfessor01")}
+          style={styles.iconCircle}
+        >
+          <Ionicons name="home" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
 
       {/* Título */}
-      <Text style={styles.titulo}>{materia}</Text>
+      <Text style={styles.titulo}>Turmas</Text>
 
-      {/* Botões dos anos */}
-      <ScrollView 
+      {/* Lista de conteúdos */}
+      <ScrollView
         style={styles.lista}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listaContent}
       >
-        {anos.map((ano, index) => (
-          <MateriaButton
+        {anos.map((ano, index) => (   // ⬅️ AGORA USA O VETOR CERTO
+          <TouchableOpacity
             key={index}
-            nome={ano}
+            style={{ width: "100%" }}
             onPress={() =>
-              navigation.navigate("telaProfessor03", { materia, ano })
+              navigation.navigate("telaProfessor03", {
+                materia,
+                ano
+              })
             }
-          />
+          >
+            <View style={styles.wrapperAlternativa}>
+              <CardAlternativas
+                label={`${ano}`}
+                showInput={false}
+                showMarkCorrect={false}
+                containerStyle={styles.cardLista}
+                labelStyle={styles.cardTexto}
+              />
+            </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
-
-      {/* Botão próximo automático */}
-      <View style={styles.nextArea}>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("telaProfessor03", {
-              materia,
-              ano: anos[anos.length - 1],
-            })
-          }
-        >
-          <IconNext />
-        </TouchableOpacity>
-      </View>
-
     </LinearGradient>
   );
 }
@@ -91,12 +99,35 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listaContent: {
-    flexGrow: 1,
+    paddingBottom: 20,
+  },
+  wrapperAlternativa: {
+    marginVertical: 8,
+  },
+  cardLista: {
+    paddingVertical: 20,
+    justifyContent: "center",
+    alignContent: "center",
+    alignItems: "center",
+  },
+  cardTexto: {
+    fontSize: 21,
+    fontWeight: "700",
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 40,
+    backgroundColor: "rgba(255,255,255,0.20)",
     justifyContent: "center",
     alignItems: "center",
   },
-  nextArea: {
-    marginTop: height * 0.02,
-    marginBottom: height * 0.02,
+  nextButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 45,
+    backgroundColor: "rgba(255,255,255,0.20)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

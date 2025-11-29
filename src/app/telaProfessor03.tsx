@@ -1,92 +1,83 @@
-import GradientButton from "@/components/gradientButton";
-import IconBack from "@/components/icons/iconBack";
-import IconHome from "@/components/icons/iconHome";
-import IconNext from "@/components/icons/iconNext";
-import { MateriaButton } from "@/components/materiaButton";
+import { Ionicons } from "@expo/vector-icons";
+import CardAlternativas from "@/components/cards/cardAlternativas";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
 export default function telaProfessor03({ navigation, route }: any) {
-  
   const materia = route?.params?.materia || "Matéria";
   const ano = route?.params?.ano || "Ano";
 
-  const conteudos = ["Fração", "Porcentagem", "Geometria", "Álgebra"];
+  const conteudos = [
+    "Frações",
+    "Algebra",
+    "Potências e raízes",
+    "Geometria",
+    "Trigonometria",
+    "Probabilidade",
+  ];
 
   return (
     <LinearGradient colors={["#111b84", "#3c0e71"]} style={styles.container}>
-
       {/* Ícones topo */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <IconBack />
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.iconCircle}
+        >
+          <Ionicons name="chevron-back" size={20} color="#fff" />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate("telaProfessor01")}>
-          <IconHome />
+        <TouchableOpacity
+          onPress={() => navigation.navigate("telaProfessor01")}
+          style={styles.iconCircle}
+        >
+          <Ionicons name="home" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
 
       {/* Título */}
-      <Text style={styles.titulo}>{materia}</Text>
+      <Text style={styles.titulo}>Matemática</Text>
 
       {/* Lista de conteúdos */}
-      <ScrollView 
+      <ScrollView
         style={styles.lista}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listaContent}
       >
-        {conteudos.map((conteudo, index) => (
-          <MateriaButton
+        {conteudos.map((conteudo, index) => (   // ⬅️ AGORA USA O VETOR CERTO
+          <TouchableOpacity
             key={index}
-            nome={conteudo}
+            style={{ width: "100%" }}
             onPress={() =>
               navigation.navigate("telaProfessor04", {
                 materia,
                 ano,
-                conteudo,
+                conteudo,     // ⬅️ passa o texto do conteúdo selecionado
               })
             }
-          />
+          >
+            <View style={styles.wrapperAlternativa}>
+              <CardAlternativas
+                label={`${index + 1}. ${conteudo}`}
+                showInput={false}
+                showMarkCorrect={false}
+                containerStyle={styles.cardLista}
+                labelStyle={styles.cardTexto}
+              />
+            </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
-
-      {/* Botão próximo */}
-      <View style={styles.nextArea}>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("telaProfessor04", {
-              materia,
-              ano,
-              conteudo: conteudos[0],
-            })
-          }
-        >
-          <IconNext />
-        </TouchableOpacity>
-      </View>
-
-      {/* Botão Editar */}
-      <View style={styles.footer}>
-        <GradientButton
-          title="Editar"
-          width={"100%"}
-          height={50}
-          fontSize={14}
-          gradientColor={["#0656E8", "#00A8FF"]}
-          onPress={() =>
-            navigation.navigate("telaProfessor04", {
-              materia,
-              ano,
-              editar: true,
-            })
-          }
-        />
-      </View>
-
     </LinearGradient>
   );
 }
@@ -116,17 +107,35 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listaContent: {
-    flexGrow: 1,
+    paddingBottom: 20,
+  },
+  wrapperAlternativa: {
+    marginVertical: 8,
+  },
+  cardLista: {
+    paddingVertical: 20,
+    justifyContent: "center",
+    alignContent: "center",
+    alignItems: "center",
+  },
+  cardTexto: {
+    fontSize: 21,
+    fontWeight: "700",
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 40,
+    backgroundColor: "rgba(255,255,255,0.20)",
     justifyContent: "center",
     alignItems: "center",
   },
-  nextArea: {
-    marginTop: height * 0.02,
-    marginBottom: height * 0.02,
-  },
-  footer: {
-    width: "100%",
-    marginTop: height * 0.02,
-    marginBottom: height * 0.02,
+  nextButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 45,
+    backgroundColor: "rgba(255,255,255,0.20)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
