@@ -194,7 +194,8 @@ export default function CadastroProfessor() {
                             placeholder={turmasList.length ? "Selecione turmas" : "Carregando turmas..."}
                             badgeTextStyles={{ color: 'white' } as any}
                             badgeStyles={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-                            checkBoxStyles={{ borderColor: 'white' }}
+                            checkBoxStyles={{ borderColor: 'white', backgroundColor: 'white' }}
+                            labelStyles={{ color: 'white' }}
                         />
                     </View>
 
@@ -215,7 +216,8 @@ export default function CadastroProfessor() {
                             placeholder={materiasList.length ? "Selecione matérias" : "Carregando matérias..."}
                             badgeTextStyles={{ color: 'white' } as any}
                             badgeStyles={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-                            checkBoxStyles={{ borderColor: 'white' }} 
+                            checkBoxStyles={{ borderColor: 'white', backgroundColor: 'white' }} 
+                            labelStyles={{ color: 'white' }}
                             notFoundText="Nenhuma matéria encontrada"
                         />
                     </View>
