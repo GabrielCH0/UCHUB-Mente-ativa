@@ -3,7 +3,7 @@ import { InputText } from "@/components/inputText";
 import { backgroundStyles, Gradient } from "@/styles/background";
 import { globalStyles } from "@/styles/global";
 import { API_KEY } from "@/utils/apiKey";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 
@@ -17,17 +17,33 @@ export default function CadastroAluno() {
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
-    const [turma, setTurma] = useState<string>(""); 
-    const [outroTurma, setOutroTurma] = useState("");
+    const [turmaId, setTurmaId] = useState<string>(""); 
+    const [turmasList, setTurmasList] = useState<{ key: string; value: string }[]>([]);
 
-    const turmaOptions = Array.from({ length: 9 }, (_, i) => ({ key: String(i + 1), value: String(i + 1) }));
-    turmaOptions.push({ key: "outros", value: "Outros" });
+    useEffect(() => {
+        fetchTurmas();
+    }, []);
+
+    async function fetchTurmas() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/turmas`);
+            if (!response.ok) throw new Error("Falha ao buscar turmas");
+            
+            const data = await response.json();
+            const formatted = data.map((item: { id: number; turma: string }) => ({
+                key: String(item.id), 
+                value: item.turma
+            }));
+            setTurmasList(formatted);
+        } catch (error) {
+            console.error("Erro ao carregar turmas:", error);
+        }
+    }
 
     async function handleSubmit() {
-        const turmaFinal = turma === "outros" ? outroTurma : turma;
         const emailLimpo = email.trim();
 
-        if (!nome.trim() || !emailLimpo || !senha.trim() || !turmaFinal.trim()) {
+        if (!nome.trim() || !emailLimpo || !senha.trim() || !turmaId) {
             Alert.alert("Atenção", "Preencha todos os campos corretamente.");
             return;
         }
@@ -50,7 +66,7 @@ export default function CadastroAluno() {
                 nome: nome.trim(),
                 email: emailLimpo,
                 senha: senha,
-                turma: turmaFinal.trim(),
+                turmaId: Number(turmaId),
             };
 
             const response = await fetch(`${API_BASE_URL}/alunos`, {
@@ -70,8 +86,7 @@ export default function CadastroAluno() {
             setNome("");
             setEmail("");
             setSenha("");
-            setTurma("");
-            setOutroTurma("");
+            setTurmaId("");
             
         } catch (error) {
             console.error("Erro no cadastro de aluno:", error);
@@ -104,8 +119,8 @@ export default function CadastroAluno() {
                     <View style={styles.field}>
                         <Text style={globalStyles.whiteText}>Turma</Text>
                         <SelectList
-                            setSelected={setTurma}
-                            data={turmaOptions}
+                            setSelected={setTurmaId}
+                            data={turmasList}
                             save="key"
                             search={false}
                             boxStyles={styles.dropdownBox}
@@ -113,17 +128,10 @@ export default function CadastroAluno() {
                             inputStyles={styles.dropdownInput}
                             dropdownTextStyles={styles.dropdownText}
                             searchStyles={styles.searchStyles}
-                            placeholder="Selecione a turma"
+                            placeholder={turmasList.length ? "Selecione a turma" : "Carregando..."}
                             defaultOption={undefined}
                         />
                     </View>
-
-                    {turma === "outros" && (
-                        <View style={styles.field}>
-                            <Text style={globalStyles.whiteText}>Especificar turma</Text>
-                            <InputText placeholder="Ex: 9A ou Ensino Médio" value={outroTurma} onChangeText={setOutroTurma} />
-                        </View>
-                    )}
                 </View>
 
                 <View style={styles.footer}>
