@@ -1,8 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
 import CardAlternativas from "@/components/cards/cardAlternativas";
+import { API_KEY } from "@/utils/apiKey";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -12,12 +15,35 @@ import {
 } from "react-native";
 
 const { width, height } = Dimensions.get("window");
+const API_URL = API_KEY;
+
+interface Turma {
+  id: number;
+  turma: string;
+}
 
 export default function telaProfessor02({ navigation, route }: any) {
   
   const materia = route?.params?.materia || "Ano";
+  const [turmas, setTurmas] = useState<Turma[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const anos = ["6º ano", "7º ano", "8º ano", "9º ano", "1º ano EM"];
+  useEffect(() => {
+    fetchTurmas();
+  }, []);
+
+  async function fetchTurmas() {
+    try {
+      const response = await fetch(`${API_URL}/turmas`);
+      const data = await response.json();
+      setTurmas(data);
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Erro", "Não foi possível carregar as turmas.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <LinearGradient colors={["#111b84", "#3c0e71"]} style={styles.container}>
@@ -47,28 +73,27 @@ export default function telaProfessor02({ navigation, route }: any) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listaContent}
       >
-        {anos.map((ano, index) => (   // ⬅️ AGORA USA O VETOR CERTO
-          <TouchableOpacity
-            key={index}
-            style={{ width: "100%" }}
-            onPress={() =>
-              navigation.navigate("telaProfessor03", {
-                materia,
-                ano
-              })
-            }
-          >
-            <View style={styles.wrapperAlternativa}>
-              <CardAlternativas
-                label={`${ano}`}
-                showInput={false}
-                showMarkCorrect={false}
-                containerStyle={styles.cardLista}
-                labelStyle={styles.cardTexto}
-              />
-            </View>
-          </TouchableOpacity>
-        ))}
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#fff" style={{ marginTop: 20 }} />
+        ) : (
+          turmas.map((turma) => (
+            <TouchableOpacity
+              key={turma.id}
+              style={{ width: "100%" }}
+              onPress={() => {}}
+            >
+              <View style={styles.wrapperAlternativa}>
+                <CardAlternativas
+                  label={turma.turma}
+                  showInput={false}
+                  showMarkCorrect={false}
+                  containerStyle={styles.cardLista}
+                  labelStyle={styles.cardTexto}
+                />
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </LinearGradient>
   );

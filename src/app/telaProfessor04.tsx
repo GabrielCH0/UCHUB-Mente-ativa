@@ -1,9 +1,12 @@
-import GradientButton from "@/components/gradientButton";
-import { Ionicons } from "@expo/vector-icons";
 import CardAlternativas from "@/components/cards/cardAlternativas";
+import GradientButton from "@/components/gradientButton";
+import { API_KEY } from "@/utils/apiKey";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -13,24 +16,37 @@ import {
 } from "react-native";
 
 const { width, height } = Dimensions.get("window");
+const API_URL = API_KEY;
+
+interface Pergunta {
+  id: number;
+  enunciado: string;
+}
 
 export default function telaProfessor04({ navigation, route }: any) {
   const materia = route?.params?.materia || "Matéria";
   const ano = route?.params?.ano || "Ano";
   const conteudo = route?.params?.conteudo || "Conteúdo";
 
-  const questoes = [
-    "Dois terços de 90 é?",
-    "Simplifique 12/18",
-    "Dois terços de 90 é?",
-    "Simplifique 12/18",
-    "Dois terços de 90 é?",
-    "Simplifique 12/18",
-    "Dois terços de 90 é?",
-    "Simplifique 12/18",
-    "Dois terços de 90 é?",
-    "Simplifique 12/18",
-  ];
+  const [perguntas, setPerguntas] = useState<Pergunta[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPerguntas();
+  }, []);
+
+  async function fetchPerguntas() {
+    try {
+      const response = await fetch(`${API_URL}/perguntas`);
+      const data = await response.json();
+      setPerguntas(data);
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Erro", "Não foi possível carregar as perguntas.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <LinearGradient colors={["#111b84", "#3c0e71"]} style={styles.container}>
@@ -61,30 +77,27 @@ export default function telaProfessor04({ navigation, route }: any) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listaContent}
       >
-        {questoes.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={{ width: "100%" }}
-            onPress={() =>
-              navigation.navigate("telaProfessor05", {
-                materia,
-                ano,
-                conteudo,
-                questao: index + 1,
-              })
-            }
-          >
-            <View style={styles.wrapperAlternativa}>
-              <CardAlternativas
-                label={`${index + 1}. ${item}`}
-                showInput={false}
-                showMarkCorrect={false}
-                containerStyle={styles.cardLista}
-                labelStyle={styles.cardTexto}
-              />
-            </View>
-          </TouchableOpacity>
-        ))}
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#fff" style={{ marginTop: 20 }} />
+        ) : (
+          perguntas.map((pergunta, index) => (
+            <TouchableOpacity
+              key={pergunta.id}
+              style={{ width: "100%" }}
+              onPress={() => {}}
+            >
+              <View style={styles.wrapperAlternativa}>
+                <CardAlternativas
+                  label={`${index + 1}. ${pergunta.enunciado}`}
+                  showInput={false}
+                  showMarkCorrect={false}
+                  containerStyle={styles.cardLista}
+                  labelStyle={styles.cardTexto}
+                />
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
       <View style={styles.footer}>
         <View style={{ width: "100%" }}>

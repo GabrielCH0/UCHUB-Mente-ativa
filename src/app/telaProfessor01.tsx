@@ -1,8 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
 import CardAlternativas from "@/components/cards/cardAlternativas";
+import { API_KEY } from "@/utils/apiKey";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -11,17 +14,35 @@ import {
   View,
 } from "react-native";
 
- const { width, height } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
+const API_URL = API_KEY;
 
- export default function TelaProfessor01({ navigation }: any) {
-  const materias = [
-    "Filosofia",
-    "Matemática",
-    "História",
-    "Computação",
-    "Português",
-    "Artes",
-  ];
+interface Materia {
+  id: number;
+  nome: string;
+}
+
+export default function TelaProfessor01({ navigation }: any) {
+  const [materias, setMaterias] = useState<Materia[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMaterias();
+  }, []);
+
+  async function fetchMaterias() {
+    try {
+      const response = await fetch(`${API_URL}/materias`);
+      const data = await response.json();
+      setMaterias(data);
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Erro", "Não foi possível carregar as matérias.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <LinearGradient colors={["#111b84", "#3c0e71"]} style={styles.container}>
       {/* Ícones topo */}
@@ -50,27 +71,27 @@ import {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listaContent}
       >
-        {materias.map((materia, index) => (   // ⬅️ AGORA USA O VETOR CERTO
-          <TouchableOpacity
-            key={index}
-            style={{ width: "100%" }}
-            onPress={() =>
-              navigation.navigate("telaProfessor02", {
-                materia
-              })
-            }
-          >
-            <View style={styles.wrapperAlternativa}>
-              <CardAlternativas
-                label={`${materia}`}
-                showInput={false}
-                showMarkCorrect={false}
-                containerStyle={styles.cardLista}
-                labelStyle={styles.cardTexto}
-              />
-            </View>
-          </TouchableOpacity>
-        ))}
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#fff" style={{ marginTop: 20 }} />
+        ) : (
+          materias.map((materia) => (
+            <TouchableOpacity
+              key={materia.id}
+              style={{ width: "100%" }}
+              onPress={() => {}}
+            >
+              <View style={styles.wrapperAlternativa}>
+                <CardAlternativas
+                  label={materia.nome}
+                  showInput={false}
+                  showMarkCorrect={false}
+                  containerStyle={styles.cardLista}
+                  labelStyle={styles.cardTexto}
+                />
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </LinearGradient>
   );
