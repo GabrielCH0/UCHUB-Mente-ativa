@@ -70,11 +70,13 @@ export default function telaProfessor04() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => router.push("/telaProfessor01")}
+          onPress={() => router.push({
+            pathname: "/telaProfessor01",
+            params: { usuario: params.usuario as string }
+          })}
           style={styles.iconCircle}        // ⬅ círculo na casinha
         >
           <Ionicons name="home" size={20} color="#fff" />
-          {/* home = casinha preenchida */}
         </TouchableOpacity>
       </View>
 
