@@ -322,7 +322,7 @@ export default function TelaProfessor05() {
           {/* ENUNCIADO */}
           <Text style={styles.enunciadoLabel}>
             {selectedQuestion
-              ? `Enunciado da questão #${selectedQuestion.id}`
+              ? `Enunciado da questão`
               : "Enunciado da questão"}
           </Text>
 
@@ -351,7 +351,7 @@ export default function TelaProfessor05() {
           {/*EXPLICAÇÃO */}
           <Text style={styles.enunciadoLabel}>
             {selectedQuestion
-              ? `Explicação da questão #${selectedQuestion.id}`
+              ? `Explicação da questão`
               : "Explicação da questão"}
           </Text>
 
