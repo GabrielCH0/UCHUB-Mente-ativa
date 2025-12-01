@@ -6,9 +6,10 @@ import React, { useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import CardAlternativas from "@/components/cards/cardAlternativas";
+import { useRouter } from "expo-router";
 
 const API_BASE_URL = API_KEY;
-
+const router = useRouter();
 
 export default function CriarQuestoes({ navigation, route }: any) {
     const [enunciado, setEnunciado] = useState("");
@@ -82,9 +83,7 @@ export default function CriarQuestoes({ navigation, route }: any) {
                 <View style={styles.header}>
                     <TouchableOpacity
                         style={styles.roundIcon}
-                        onPress={() => {
-                            navigation.goBack();
-                        }}
+                        onPress={() => { router.back(); }}
                     >
                         <Ionicons name="chevron-back" size={22} color="#fff" />
                     </TouchableOpacity>

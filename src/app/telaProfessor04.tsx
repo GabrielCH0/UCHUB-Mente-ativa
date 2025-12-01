@@ -117,6 +117,15 @@ export default function telaProfessor04() {
             height={60}       // ⬅ ajuste para parecido com os cards
             fontSize={18}
             gradientColor={["#0656E8", "#00A8FF"]}
+            onPress={() => router.push({
+              pathname: "/criarQuestoes",
+              params: {
+                materiaId,
+                turmaId,
+                materiaNome,
+                turmaNome,
+              },
+            })}
           />
         </View>
       </View>
