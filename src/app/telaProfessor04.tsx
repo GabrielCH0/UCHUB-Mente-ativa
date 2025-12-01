@@ -115,8 +115,8 @@ export default function telaProfessor04() {
         <View style={{ width: "100%" }}>
           <GradientButton
             title="Criar"
-            width={"100%"}    // ⬅ botãa ocupa toda a largura
-            height={60}       // ⬅ ajuste para parecido com os cards
+            width={"100%"}    
+            height={60}      
             fontSize={18}
             gradientColor={["#0656E8", "#00A8FF"]}
             onPress={() => router.push({
